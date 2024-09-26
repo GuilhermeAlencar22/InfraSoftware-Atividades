@@ -1,0 +1,65 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+pthread_rwlock_t lock;
+
+void *reader(void *param) {
+    int id = *((int *)param);
+    while (1) {
+        pthread_rwlock_rdlock(&lock);
+
+        // Lendo dados
+        printf("Leitor %d está lendo\n", id);
+        sleep(1);
+
+        pthread_rwlock_unlock(&lock);
+
+        sleep(1);
+    }
+    return NULL;
+}
+
+void *writer(void *param) {
+    int id = *((int *)param);
+    while (1) {
+        pthread_rwlock_wrlock(&lock);
+
+        // Escrevendo dados
+        printf("Escritor %d está escrevendo\n", id);
+        sleep(2);
+
+        pthread_rwlock_unlock(&lock);
+
+        sleep(1);
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t readers[3], writers[2];
+    int ids[5] = {1, 2, 3, 4, 5};
+
+    pthread_rwlock_init(&lock, NULL);
+
+    // Criando leitores e escritores
+    for (int i = 0; i < 3; i++) {
+        pthread_create(&readers[i], NULL, reader, &ids[i]);
+    }
+    for (int i = 0; i < 2; i++) {
+        pthread_create(&writers[i], NULL, writer, &ids[i + 3]);
+    }
+
+    // Esperando as threads terminarem (nunca neste exemplo)
+    for (int i = 0; i < 3; i++) {
+        pthread_join(readers[i], NULL);
+    }
+    for (int i = 0; i < 2; i++) {
+        pthread_join(writers[i], NULL);
+    }
+
+    pthread_rwlock_destroy(&lock);
+
+    return 0;
+}
