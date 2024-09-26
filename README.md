@@ -21,6 +21,13 @@ Um dos projetos desenvolvidos foi uma implementação do problema clássico do p
 1. **Usando Semáforos:** Esta versão utiliza semáforos para controlar o acesso a um buffer compartilhado entre produtor e consumidor.
 2. **Usando Variáveis de Condição:** Esta versão faz uso de mutexes e variáveis de condição para oferecer uma sincronização efetiva entre as threads envolvidas.
 
+### Problema dos Leitores/Escritores
+
+Este problema explora os desafios da sincronização entre múltiplos leitores e escritores acessando o mesmo recurso. Foram desenvolvidas duas abordagens com priorização para os escritores:
+
+1. **Usando Semáforos:** Implementação que prioriza escritores usando semáforos POSIX.
+2. **Usando RWLocks:** Implementação que prioriza escritores utilizando RWLocks (locks de leitura e escrita) POSIX para controlar o acesso.
+
 ## Ferramentas e Tecnologias
 
 - **Linguagem de Programação:** C
