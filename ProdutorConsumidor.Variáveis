@@ -1,0 +1,85 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define MAX_ITEMS 10
+#define BUFFER_SIZE 5
+
+int buffer[BUFFER_SIZE];
+int in = 0;
+int out = 0;
+int count = 0; // Conta o número de itens no buffer
+
+pthread_mutex_t mutex;
+pthread_cond_t can_produce;
+pthread_cond_t can_consume;
+
+void* producer(void* arg) {
+    for(int i = 0; i < MAX_ITEMS; i++) {
+        pthread_mutex_lock(&mutex);
+
+        // Espera até que haja espaço para produzir
+        while (count == BUFFER_SIZE) {
+            pthread_cond_wait(&can_produce, &mutex);
+        }
+
+        // Produz um item
+        int item = rand() % 100;
+        buffer[in] = item;
+        in = (in + 1) % BUFFER_SIZE;
+        count++;
+        printf("Producer produced: %d\n", item);
+
+        // Sinaliza ao consumidor que há algo para consumir
+        pthread_cond_signal(&can_consume);
+        pthread_mutex_unlock(&mutex);
+
+        sleep(1); // Simula tempo de produção
+    }
+    return NULL;
+}
+
+void* consumer(void* arg) {
+    for(int i = 0; i < MAX_ITEMS; i++) {
+        pthread_mutex_lock(&mutex);
+
+        // Espera até que haja algo para consumir
+        while (count == 0) {
+            pthread_cond_wait(&can_consume, &mutex);
+        }
+
+        // Consome um item
+        int item = buffer[out];
+        out = (out + 1) % BUFFER_SIZE;
+        count--;
+        printf("Consumer consumed: %d\n", item);
+
+        // Sinaliza ao produtor que há espaço para produzir
+        pthread_cond_signal(&can_produce);
+        pthread_mutex_unlock(&mutex);
+
+        sleep(1); // Simula tempo de consumo
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t prod, cons;
+    pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&can_produce, NULL);
+    pthread_cond_init(&can_consume, NULL);
+
+    pthread_create(&prod, NULL, producer, NULL);
+    pthread_create(&cons, NULL, consumer, NULL);
+
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&can_produce);
+    pthread_cond_destroy(&can_consume);
+
+    return 0;
+}
+
